@@ -1,11 +1,9 @@
 pipeline {
+
     agent any
 
-    tools {
-        sonarRunner 'SonarScanner'
-    }
-
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -14,23 +12,18 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonarqube') {
-                    sh 'sonar-scanner'
-                }
-            }
-        }
+                script {
 
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 3, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+                    def scannerHome = tool 'SonarScanner'
 
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t node-demo-app:${BUILD_NUMBER} .'
+                    withSonarQubeEnv('Sonarqube') {
+
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner
+                        """
+
+                    }
+                }
             }
         }
     }
